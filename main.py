@@ -63,6 +63,50 @@ def genPass():
     #copying pass
     pyperclip.copy(gg)
 
+# save pass
+
+def saveThePass():
+    global alert
+    if alert != None:
+        alert.destroy()
+        alert = None
+    web_data = web.get()
+    email_data = email.get()
+    password_data = password.get()
+    if web_data != "" and password_data != "" and email_data != "":
+
+        data_abhi = {
+            web_data: {
+            "Email/Username": email_data,
+            "password": password_data
+            }
+        }
+        try:
+            with open("data.json", "r") as file:
+                data_his = json.load(file)
+                try:
+                    x = data_his[web_data]
+                    z = messagebox.askokcancel("Overwrite?", "There is already an entry with that same website name, do you want to overwrite that?")
+                    if z:
+                        data_his.update(data_abhi)
+                        with open("data.json", "w") as file:
+                            json.dump(data_his, file, indent=4)
+                        web.delete(0,END)
+                        password.delete(0,END)
+                except KeyError:
+                    data_his.update(data_abhi)
+                    with open("data.json", "w") as file:
+                        json.dump(data_his, file, indent=4)
+                    web.delete(0,END)
+                    password.delete(0,END)
+        except FileNotFoundError:
+            with open("data.json", "w") as file:
+                json.dump(data_abhi, file, indent=4)
+
+
+    else:
+        messagebox.showinfo(title="ERROR", message="Plese make sure you fill every field!")
+
 window = Tk()
 window.title("Password Manager")
 # window.minsize(220,220)
@@ -71,14 +115,49 @@ canvas = Canvas(height=200, width=200)
 image = PhotoImage(file="logo.png")
 canvas.create_image(100, 100, image=image)
 canvas.grid(row=0, column=1)
+
+#labels
+website = Label(text="Website:",)
+website.grid(row=1, column=0)
+
+Email_user = Label(text="Email/Username:",)
+Email_user.grid(row=2, column=0)
+
+Pass = Label(text="Password:",)
+Pass.grid(row=3, column=0)
+
 # entries
 web = Entry(width=18)
 web.focus()
 web.grid(row=1, column=1)
 
 email = Entry(width=35)
-email.insert(0, "test@test.test")
+
+emailToPut = ""
+
+try:
+    with open("config.txt", "r+") as file:
+        l = file.readline()
+        emailToPut = l
+except FileNotFoundError:
+    emailToPut = "test@test.test"
+
+
+email.insert(0, emailToPut)
 email.grid(row=2, column=1, columnspan=2)
 
 password = Entry(width=18)
 password.grid(row=3, column=1)
+
+#buttons
+
+btn_gen = Button(text="Generate Password", command=genPass)
+btn_gen.grid(row=3, column=2)
+
+btn_add = Button(text="Add", width=36, command=saveThePass)
+btn_add.grid(row=4, column=1, columnspan=2)
+
+btn_gen = Button(text="Search", command=searchPass, width=13)
+btn_gen.grid(row=1, column=2)
+
+window.mainloop()
